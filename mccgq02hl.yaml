@@ -1,0 +1,123 @@
+esphome:
+  name: "esp32"
+  friendly_name: esp32
+
+ota:
+  platform: esphome
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "key"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+esp32_ble_tracker:
+
+logger:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+external_components:
+  - source: github://dentra/esphome-components
+
+web_server:
+  port: 80
+
+# Define a function to send a message to Telegram
+globals:
+  - id: message_text
+    type: std::string
+    initial_value: ""
+
+substitutions:
+  telegram_bot_token: !secret telegram_bot_token
+  telegram_recipient1: !secret telegram_recipient1
+  telegram_recipient2: !secret telegram_recipient2
+
+
+http_request:
+  verify_ssl: false
+  useragent: esphome/device
+  timeout: 20s
+  id: telegram_request
+
+script:
+  - id: send_telegram_message
+    then:
+      - http_request.post:
+          url: "https://api.telegram.org/bot${telegram_bot_token}/sendMessage"
+          headers:
+            Content-Type: application/json
+          json:
+            chat_id: ${telegram_recipient1}
+            text: !lambda 'return id(message_text);'
+      - http_request.post:
+          url: "https://api.telegram.org/bot${telegram_bot_token}/sendMessage"
+          headers:
+            Content-Type: application/json
+          json:
+            chat_id: ${telegram_recipient2}
+            text: !lambda 'return id(message_text);'
+
+sensor:
+  - platform: ble_rssi
+    mac_address: "AA:AA:BB:BB:CC:CC"
+    name: "sensor1 RSSI"
+  - platform: ble_rssi
+    mac_address: "CC:CC:BB:BB:AA:AA"
+    name: "sensor2 RSSI"
+
+binary_sensor:
+  - platform: miot_mccgq02hl
+    mac_address: "AA:AA:BB:BB:CC:CC"
+    bindkey: "bindkey_for_sensor1"
+    name: "First Door/Window Sensor"
+    id: first_sensor
+    on_state:
+      then:
+        - lambda: |-
+            if (id(room1_sensor).state) {
+              id(message_text) = "room 1 window is opened.";
+            } else {
+              id(message_text) = "room 1 window is closed.";
+            }
+        - script.execute: send_telegram_message
+
+  - platform: miot_mccgq02hl
+    mac_address: "CC:CC:BB:BB:AA:AA"
+    bindkey: "bindkey_for_sensor2"
+    name: "Second Window Sensor"
+    id: second_sensor
+    on_state:
+      then:
+        - lambda: |-
+            if (id(kitchen_sensor).state) {
+              id(message_text) = "kitchen  window is opened.";
+            } else {
+              id(message_text) = "kitchen  window is closed.";
+            }
+        - script.execute: send_telegram_message
+
+text_sensor:
+  - platform: miot_explorer
+    mac_address: "AA:AA:BB:BB:CC:CC"
+    bindkey: "bindkey_for_sensor1"
+    name: "room1"
+    battery_level:
+      name: "room1 Battery Level"
+    battery_voltage:
+      name: "room1 Battery Voltage"
+  - platform: miot_explorer
+    mac_address: "CC:CC:BB:BB:AA:AA"
+    bindkey: "bindkey_for_sensor2"
+    name: "kitchen Window Sensor"
+    battery_level:
+      name: "kitchen Battery Level"
+    battery_voltage:
+      name: "kitchen Battery Voltage"
