@@ -1,1 +1,1 @@
-mccgq02hl.yaml - allows you to work with Xiaomi Mi Door and Window Sensor 2 MCCGQ02HL directly from esp32. It can send events messages to telegram withot Home Assistant. This can be usefull when the Home Assistans server is down.
+mccgq02hl.yaml - allows you to work with Xiaomi Mi Door and Window Sensor 2 MCCGQ02HL directly from esp32. It can send events messages to telegram without Home Assistant. This can be usefull when the Home Assistans server is down.
