@@ -79,6 +79,10 @@ binary_sensor:
     bindkey: "bindkey_for_sensor1"
     name: "First Door/Window Sensor"
     id: first_sensor
+    light:
+      name: "first_sensor Light"
+    alert:
+      name: "first_sensor Alert"
     on_state:
       then:
         - lambda: |-
@@ -94,6 +98,10 @@ binary_sensor:
     bindkey: "bindkey_for_sensor2"
     name: "Second Door/Window Sensor"
     id: second_sensor
+    light:
+      name: "second_sensor Light"
+    alert:
+      name: "second_sensor Alert"
     on_state:
       then:
         - lambda: |-
